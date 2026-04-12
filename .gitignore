@@ -1,0 +1,15 @@
+# Configuration de la base de données (Sécurité)
+admin/login.php
+admin/hash_password.php
+includes/db_connect.php
+
+# Dossiers système et temporaires
+.DS_Store
+Thumbs.db
+
+# Dépendances (si tu utilises Composer plus tard)
+/vendor/
+
+# Logs et fichiers de session
+*.log
+sessions/
