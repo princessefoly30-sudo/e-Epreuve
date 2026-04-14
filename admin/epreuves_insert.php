@@ -25,14 +25,42 @@ if (isset($_POST['upload']) && isset($_FILES['pdf'])) {
     $nom_original = $_FILES['pdf']['name'];
     $tmp_nom      = $_FILES['pdf']['tmp_name'];
     $error_code   = $_FILES['pdf']['error'];
+    $taille_fichier = $_FILES['pdf']['size'];
+
+    // TABLEAU DES ERREURS D'UPLOAD (Pour debug si ça fonctionne pas)
+    $erreurs_upload = [
+        0 => "Pas d'erreur",
+        1 => "Fichier trop gros (dépasse upload_max_filesize)",
+        2 => "Fichier trop gros (dépasse post_max_size)",
+        3 => "Fichier partiellement uploadé",
+        4 => "Aucun fichier sélectionné",
+        6 => "Pas de dossier temporaire",
+        7 => "Impossible d'écrire sur le disque",
+        8 => "Extension bloquée par PHP"
+    ];
 
     // Vérification s'il n'y a pas d'erreur d'upload
     if ($error_code === 0) {
         
+        // SÉCURITÉ : Vérifier que c'est bien un PDF
+        $extension = strtolower(pathinfo($nom_original, PATHINFO_EXTENSION));
+        
+        // Petite sécurité pour éviter d'uploader n'importe quoi
+        if ($extension !== 'pdf') {
+            header("Location: epreuves_add.php?error=not_pdf");
+            exit();
+        }
+        
+        // Vérifier la taille du fichier (max 50 MB)
+        $max_size = 50 * 1024 * 1024; // 50 MB en bytes
+        if ($taille_fichier > $max_size) {
+            header("Location: epreuves_add.php?error=too_large");
+            exit();
+        }
+
         // CRÉATION D'UN NOM UNIQUE (Pour éviter que Maintenance n'écrase Excel)
-        $extension = pathinfo($nom_original, PATHINFO_EXTENSION);
         // On génère un nom du type : 1712345678_a1b2c3d4.pdf
-        $nom_unique = time() . "_" . bin2hex(random_bytes(4)) . "." . $extension;
+        $nom_unique = time() . "_" . bin2hex(random_bytes(4)) . ".pdf";
         
         // Chemin de destination (Assure-toi que le dossier ../uploads existe)
         $destination = "../uploads/" . $nom_unique;
@@ -59,13 +87,15 @@ if (isset($_POST['upload']) && isset($_FILES['pdf'])) {
                 die("Erreur SQL lors de l'insertion : " . $e->getMessage());
             }
         } else {
-            // Erreur de déplacement du fichier
-            header("Location: epreuves_add.php?error=upload_failed");
+            // Erreur de déplacement du fichier (probablement un souci de permissions)
+            header("Location: epreuves_add.php?error=move_failed");
             exit();
         }
     } else {
         // Erreur liée au fichier (trop gros, corrompu, etc.)
-        header("Location: epreuves_add.php?error=file_error");
+        // On envoie le code d'erreur pour pouvoir afficher le message approprié
+        $error_msg = $erreurs_upload[$error_code] ?? "Erreur inconnue";
+        header("Location: epreuves_add.php?error=file_error&code=" . $error_code . "&msg=" . urlencode($error_msg));
         exit();
     }
 } else {

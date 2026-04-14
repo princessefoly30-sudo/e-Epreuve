@@ -35,6 +35,23 @@ include '../include/header.php';
                 </div>
                 <div class="card-body p-4">
                     
+                    <!-- AFFICHAGE DES ERREURS (Si le upload a échoué) -->
+                    <?php if(isset($_GET['error'])): 
+                        // On récupère le message d'erreur spécifique
+                        $erreurs = [
+                            'file_error' => 'Erreur lors de l\'upload du fichier : ' . ($_GET['msg'] ?? 'Erreur inconnue'),
+                            'not_pdf' => 'Erreur : Le fichier doit être un PDF !',
+                            'too_large' => 'Erreur : Le fichier est trop gros (max 50 MB)',
+                            'move_failed' => 'Erreur : Impossible de copier le fichier sur le serveur. Vérifiez les permissions du dossier uploads/'
+                        ];
+                        $msg = $erreurs[$_GET['error']] ?? 'Une erreur est survenue.';
+                    ?>
+                    <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                        <i class="fa fa-exclamation-circle me-2"></i> <strong>Attention :</strong> <?= htmlspecialchars($msg) ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <?php endif; ?>
+                    
                     <!-- LE FORMULAIRE COMMENCE ICI ET ENVELOPPE TOUT -->
                     <form action="epreuves_insert.php" method="POST" enctype="multipart/form-data">
                         
@@ -72,8 +89,11 @@ include '../include/header.php';
                         <div class="row">
                             <!-- Fichier PDF -->
                             <div class="col-12 mb-4">
-                                <label class="form-label fw-bold">Fichier PDF</label>
+                                <label class="form-label fw-bold">Fichier PDF <span class="text-danger">*</span></label>
                                 <input type="file" name="pdf" class="form-control" accept=".pdf" required>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fa fa-info-circle me-1"></i> Taille max : 50 MB | Format : PDF uniquement
+                                </small>
                             </div>
                         </div>
 
