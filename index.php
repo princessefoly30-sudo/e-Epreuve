@@ -73,6 +73,10 @@ $recentes_ids = array_column(array_slice($toutes_epreuves, 0, 3), 'id_epreuve');
     .card-image-box {
         height: 180px;
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(6, 187, 204, 0.05), rgba(24, 29, 56, 0.1));
     }
     .card-image-box img {
         height: 100%;
@@ -180,11 +184,36 @@ $recentes_ids = array_column(array_slice($toutes_epreuves, 0, 3), 'id_epreuve');
 
     <!-- Grille corrigée -->
     <div class="row g-4" id="epreuveGrid">
-        <?php foreach($toutes_epreuves as $ep): ?>
+        <?php foreach($toutes_epreuves as $ep): 
+            // Ici, on détermine quelle icône afficher selon la matière
+            // C'est un système simple pour rendre les cartes dynamiques
+            $nom_mat_lower = strtolower($ep['nom_matiere']);
+            
+            // On attribut un icône selon les mots-clés de la matière
+            if (strpos($nom_mat_lower, 'excel') !== false || strpos($nom_mat_lower, 'calc') !== false) {
+                $icon = 'fa-table'; // Icône tableur
+                $bg_color = 'bg-success';
+            } elseif (strpos($nom_mat_lower, 'php') !== false || strpos($nom_mat_lower, 'python') !== false || strpos($nom_mat_lower, 'java') !== false || strpos($nom_mat_lower, 'javascript') !== false) {
+                $icon = 'fa-code'; // Icône programmation
+                $bg_color = 'bg-info';
+            } elseif (strpos($nom_mat_lower, 'compt') !== false || strpos($nom_mat_lower, 'finance') !== false) {
+                $icon = 'fa-calculator'; // Icône comptabilité
+                $bg_color = 'bg-warning';
+            } elseif (strpos($nom_mat_lower, 'francais') !== false || strpos($nom_mat_lower, 'fran') !== false) {
+                $icon = 'fa-book'; // Icône littérature
+                $bg_color = 'bg-danger';
+            } else {
+                $icon = 'fa-file-pdf'; // Icône par défaut PDF
+                $bg_color = 'bg-primary';
+            }
+        ?>
         <div class="col-lg-4 col-md-6 epreuve-card-item animated fadeInUp">
             <div class="human-card border-0 shadow-sm h-100 d-flex flex-column">
-                <div class="card-image-box">
-                    <img src="img/standard_exam.jpg" alt="Examen">
+                <div class="card-image-box" style="background: linear-gradient(135deg, rgba(6, 187, 204, 0.05), rgba(24, 29, 56, 0.1)); display: flex; align-items: center; justify-content: center;">
+                    <!-- Au lieu d'une image statique, on affiche une icône dynamique selon la matière -->
+                    <div class="<?= $bg_color ?> rounded-circle p-5 text-white">
+                        <i class="fa <?= $icon ?> fa-3x"></i>
+                    </div>
                     <div class="overlay-filiere">
                         <i class="fa fa-tag me-1"></i> <?= htmlspecialchars($ep['nom_filiere']) ?>
                     </div>
@@ -219,8 +248,8 @@ $recentes_ids = array_column(array_slice($toutes_epreuves, 0, 3), 'id_epreuve');
                     </div>
 
                     <div class="mt-auto">
-                       <!-- Dans ton bouton Action -->
-<a href="uploads/<?= $ep['fichier_pdf'] ?>" target="_blank" class="btn-premium text-decoration-none text-white">
+                       <!-- Lien dynamique vers la page détail avec l'ID de l'épreuve -->
+<a href="direct_view.php?id=<?= $ep['id_epreuve'] ?>" class="btn-premium text-decoration-none text-white">
     <i class="fa fa-file-pdf me-2"></i> VOIR LE SUJET
 </a>
                     </div>
